@@ -1,5 +1,6 @@
 const fs = require('fs/promises');
 const path = require('path');
+const {nanoid} = require('nanoid');
 
 const contactsPath = path.join(__dirname, "./db/contacts.json");
 
@@ -22,19 +23,46 @@ const getContactById = async (id) => {
         console.log(error.message);
     };
 };
-
-function removeContact(contactId) {
-    // ...твій код. Повертає об'єкт видаленого контакту. Повертає null, якщо контакт з таким id не знайдений.
-};
   
-function addContact(name, email, phone) {
-    // ...твій код. Повертає об'єкт доданого контакту. 
+const addContact = async (contact) => {
+    const contacts = await getAll();
+    const newContact = {
+        id: nanoid(),
+        ...contact,
+    }
+    contacts.push(newContact);
+    await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
+    return newContact;
+
+};
+
+const updateContact = async (id, data) => {
+    const contacts = await getAll();
+    const index = contacts.findIndex(item => item.id === id);
+    if(index === -1){
+        return null;
+    }
+    contacts[index] = {id, ...data};
+    await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
+    return contacts[index];
+};
+
+const removeContact = async (id) => {
+    const contacts = await getAll();
+    const index = contacts.findIndex(item => item.id === id);
+    if(index === -1){
+        return null;
+    }
+    const [result] = contacts.splice(index, 1);
+    await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
+    return result;
 };
 
 
 module.exports = {
     getAll,
     getContactById,
-    removeContact,
     addContact,
+    updateContact,
+    removeContact,
 };
